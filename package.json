@@ -1,0 +1,25 @@
+{
+  "name": "ansible-master",
+  "version": "1.0.0",
+  "author": "Timo Behrmann",
+  "description": "Yet another ansible frontend",
+  "license": "MIT",
+  "dependencies": {
+    "boom": "^2.6.1",
+    "handlebars": "^3.0.0",
+    "hapi": "8.x.x",
+    "hapi-swaggered": "*",
+    "hapi-swaggered-ui": "*",
+    "hoek": "*",
+    "joi": "^5.1.0",
+    "lodash": "*",
+    "mongodb": "^2.0.18",
+    "socket.io": "^1.3.4",
+    "winston": "*"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "main": "index.js"
+}
