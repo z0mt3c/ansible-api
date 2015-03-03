@@ -45,6 +45,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.List
                 }
             }
@@ -73,6 +74,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.Get
                 }
             }
@@ -102,6 +104,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.Get
                 }
             }
@@ -126,6 +129,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.Get
                 }
             }
@@ -156,6 +160,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.Get
                 }
             }
@@ -186,6 +191,7 @@ var resource = module.exports = {
                     });
                 },
                 response: {
+                    failAction: 'log',
                     schema: schema.Get
                 }
             }

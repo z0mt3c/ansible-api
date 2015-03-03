@@ -5,6 +5,8 @@ var hapiSwaggeredUi = require('hapi-swaggered-ui');
 var _ = require('lodash');
 
 var server = new Hapi.Server();
+
+
 server.connection({
     port: 7000,
     labels: ['api']
@@ -89,6 +91,17 @@ server.route({
         reply.redirect('/docs');
     }
 });
+
+server.on('log', function (event, tags) {
+    console.log('Server error: ' + (event.data || 'unspecified'), tags);
+});
+
+server.on('request-internal', function (request, event, tags) {
+    if (tags.validation) {
+        console.error('-> ' + event.data);
+    }
+});
+
 
 server.start(function() {
     console.log('started on http://localhost:7000');
