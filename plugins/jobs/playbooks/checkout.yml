@@ -1,0 +1,6 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+   - name: 'Syncing repository'
+     git: repo='{{REPO}}' dest='{{TARGET}}' update=yes force={{FORCE|default('yes')}} version={{VERSION|default('HEAD')}}

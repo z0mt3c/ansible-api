@@ -8,22 +8,25 @@ var defaults = {
     tags: ['api']
 };
 
-module.exports = {
-    create: function(db, Schema, options) {
+var resource = module.exports = {
+    internals: {
+        replyError: function(reply, error) {
+            return reply(Boom.badImplementation('Terrible implementation', error))
+        },
+        replyNotFound: function(reply) {
+            return internals.replyNotFound(reply);
+        }
+    },
+    create: function(db, options) {
+        Hoek.assert(options.collection);
         options = Hoek.applyToDefaults(defaults, options || {});
 
-        var resourceName = Hoek.reach(Schema, 'Get._settings.className').toLowerCase();
-
-        var internals = {
-            replyError: function(reply, error) {
-                return reply(Boom.badImplementation('Terrible implementation', error))
-            },
-            replyNotFound: function(reply) {
-                return internals.replyNotFound(reply);
-            }
-        };
-
+        var schema = options.schema;
         var routes = [];
+
+        var getCollection = function() {
+            return db.collection(options.collection);
+        };
 
         routes.push({
             path: options.prefix,
@@ -33,16 +36,16 @@ module.exports = {
                 description: 'List resources',
                 notes: 'List resources',
                 handler: function(request, reply) {
-                    db.collection(resourceName).find({}).toArray(function(error, docs) {
+                    getCollection().find({}).toArray(function(error, docs) {
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         }
 
                         return reply(docs);
                     });
                 },
                 response: {
-                    schema: Schema.List
+                    schema: schema.List
                 }
             }
         });
@@ -55,22 +58,22 @@ module.exports = {
                 description: 'List resources',
                 notes: 'List resources',
                 validate: {
-                    params: Schema.GetParams
+                    params: schema.GetParams
                 },
                 handler: function(request, reply) {
                     var objectID = new ObjectID(request.params.id);
-                    db.collection(resourceName).findOne({_id: objectID}, function(error, doc) {
+                    getCollection().findOne({_id: objectID}, function(error, doc) {
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         } else if (!doc) {
-                            return internals.replyNotFound(reply);
+                            return resource.internals.replyNotFound(reply);
                         }
 
                         return reply(doc);
                     });
                 },
                 response: {
-                    schema: Schema.Get
+                    schema: schema.Get
                 }
             }
         });
@@ -83,23 +86,23 @@ module.exports = {
                 description: 'Delete resource with ID',
                 notes: 'Delete resource with ID',
                 validate: {
-                    params: Schema.GetParams
+                    params: schema.GetParams
                 },
                 handler: function(request, reply) {
                     var objectID = new ObjectID(request.params.id);
-                    db.collection(resourceName).findOneAndDelete({_id: objectID}, function(error, doc) {
+                    getCollection().findOneAndDelete({_id: objectID}, function(error, doc) {
                         console.log(doc);
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         } else if (!doc || !doc.value) {
-                            return internals.replyNotFound(reply);
+                            return resource.internals.replyNotFound(reply);
                         }
 
                         return reply(doc.value);
                     });
                 },
                 response: {
-                    schema: Schema.Get
+                    schema: schema.Get
                 }
             }
         });
@@ -112,18 +115,18 @@ module.exports = {
                 description: 'Create resource',
                 notes: 'Create resource',
                 validate: {
-                    payload: Schema.Post
+                    payload: schema.Post
                 },
                 handler: function(request, reply) {
-                    db.collection(resourceName).insertOne(request.payload, {returnOriginal: false}, function(error, doc) {
+                    getCollection().insertOne(request.payload, {returnOriginal: false}, function(error, doc) {
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         }
                         return reply(request.payload);
                     });
                 },
                 response: {
-                    schema: Schema.Get
+                    schema: schema.Get
                 }
             }
         });
@@ -136,24 +139,24 @@ module.exports = {
                 description: 'Update resource with ID',
                 notes: 'Update resource with ID',
                 validate: {
-                    params: Schema.GetParams,
-                    payload: Schema.Put
+                    params: schema.GetParams,
+                    payload: schema.Put
                 },
                 handler: function(request, reply) {
                     var objectID = new ObjectID(request.params.id);
 
-                    db.collection(resourceName).findOneAndReplace({_id: objectID}, request.payload, {returnOriginal: false}, function(error, doc) {
+                    getCollection().findOneAndReplace({_id: objectID}, request.payload, {returnOriginal: false}, function(error, doc) {
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         } else if (!doc || !doc.value) {
-                            return internals.replyNotFound(reply);
+                            return resource.internals.replyNotFound(reply);
                         }
 
                         return reply(doc.value);
                     });
                 },
                 response: {
-                    schema: Schema.Get
+                    schema: schema.Get
                 }
             }
         });
@@ -166,24 +169,24 @@ module.exports = {
                 description: 'Patch resource with ID',
                 notes: 'Patch resource with ID',
                 validate: {
-                    params: Schema.GetParams,
-                    payload: Schema.Patch
+                    params: schema.GetParams,
+                    payload: schema.Patch
                 },
                 handler: function(request, reply) {
                     var objectID = new ObjectID(request.params.id);
 
-                    db.collection(resourceName).findOneAndUpdate({_id: objectID}, {$set: request.payload}, {returnOriginal: false}, function(error, doc) {
+                    getCollection().findOneAndUpdate({_id: objectID}, {$set: request.payload}, {returnOriginal: false}, function(error, doc) {
                         if (error) {
-                            return internals.replyError(reply, error);
+                            return resource.internals.replyError(reply, error);
                         } else if (!doc || !doc.value) {
-                            return internals.replyNotFound(reply);
+                            return resource.internals.replyNotFound(reply);
                         }
 
                         return reply(doc.value);
                     });
                 },
                 response: {
-                    schema: Schema.Get
+                    schema: schema.Get
                 }
             }
         });

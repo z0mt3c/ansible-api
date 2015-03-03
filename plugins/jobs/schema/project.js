@@ -6,7 +6,7 @@ var id = Joi.string().regex(/^[a-f0-9]+$/i).length(24);
 
 schema.Post = Joi.object({
     name: Joi.string().required(),
-    description: Joi.string().required(),
+    description: Joi.string().optional(),
     type: Joi.string().valid('git').required(),
     url: Joi.string().required(),
     branch: Joi.string().optional()

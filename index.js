@@ -68,7 +68,9 @@ server.register({
 
 server.register({
     register: require('./plugins/jobs'),
-    options: {}
+    options: {
+        path: __dirname + '/data'
+    }
 }, {
     select: 'api',
     routes: {
