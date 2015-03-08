@@ -6,11 +6,9 @@ var id = Joi.string().regex(/^[a-f0-9]+$/i).length(24);
 
 schema.Post = Joi.object({
     name: Joi.string().required(),
-    type: Joi.string().valid('ansible').required(),
-    description: Joi.string().required(),
+    type: Joi.string().valid('ansible').default('ansible').optional(),
+    description: Joi.string().optional(),
     project: id.required(),
-    test: Joi.array().includes(Joi.object({test: Joi.string()})),
-    test2: Joi.array().includes(Joi.string()),
     playbook: Joi.string().required(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug']).default('default')
 }).options({className: 'CreateJob'});

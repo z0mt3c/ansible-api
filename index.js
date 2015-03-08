@@ -1,109 +1,94 @@
-var Hapi = require('hapi');
-var Joi = require('joi');
-var hapiSwaggered = require('hapi-swaggered');
-var hapiSwaggeredUi = require('hapi-swaggered-ui');
 var _ = require('lodash');
+var Glue = require('glue');
+var Path = require('path');
+var server = null;
 
-var server = new Hapi.Server();
-
-
-server.connection({
-    port: 7000,
-    labels: ['api']
-});
-
-server.register({
-    register: hapiSwaggered,
-    options: {
-        cache: false,
-        stripPrefix: '/api',
-        responseValidation: false,
-        descriptions: {
-            'api': 'Example foobar description'
-        },
-        info: {
-            title: 'Example API',
-            description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
-            version: '1.0'
+var internals = {
+    compose(manifest) {
+        Glue.compose(manifest, {
+            relativeTo: Path.join(__dirname, 'plugins')
+        }, internals.done);
+    },
+    done(error, _server) {
+        if (error) {
+            throw error;
         }
-    }
-}, {
-    select: 'api',
-    routes: {
-        prefix: '/swagger'
-    }
-}, function(err) {
-    if (err) {
-        throw err;
-    }
-});
 
-server.register({
-    register: hapiSwaggeredUi,
-    options: {
-        title: 'Example API'
-    }
-}, {
-    select: 'api',
-    routes: {
-        prefix: '/docs'
-    }
-}, function(err) {
-    if (err) {
-        throw err;
-    }
-});
+        server = _server;
+        server.start(internals.started);
+    },
+    started(error) {
+        if (error) {
+            throw error;
+        }
 
-server.register({
-    register: require('./plugins/buildish'),
-    options: {}
-}, {
+        console.log('Server(s) listening at:');
+
+        _.each(server.connections, function(connection) {
+            console.log(' - ' + connection.info.uri);
+        });
+    }
+};
+
+var apiPluginOptions = [{
     select: 'api',
     routes: {
         prefix: '/api'
-    }
-}, function(err) {
-    if (err) {
-        throw err;
-    }
-});
-
-server.register({
-    register: require('./plugins/jobs'),
+    },
     options: {
-        path: __dirname + '/data'
+        repositoryPath: __dirname + '/data'
     }
-}, {
-    select: 'api',
-    routes: {
-        prefix: '/api'
-    }
-}, function(err) {
-    if (err) {
-        throw err;
+}];
+
+internals.compose({
+    server: {},
+    connections: [{
+        port: 7000,
+        labels: ['api'],
+        routes: {
+            validate: {
+                options: {
+                    abortEarly: false,
+                    stripUnknown: true
+                }
+            }
+        }
+    }],
+    plugins: {
+        'hapi-swaggered': [{
+            select: 'api',
+            routes: {
+                prefix: '/swagger'
+            },
+            options: {
+                cache: false,
+                responseValidation: false,
+                stripPrefix: '/api',
+                info: {
+                    title: 'Ansible Master API',
+                    description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
+                    version: require('./package.json').version
+                }
+            }
+        }],
+        'hapi-swaggered-ui': [{
+            select: 'api',
+            routes: {
+                prefix: '/docs'
+            },
+            options: {
+                title: 'Ansible Master API'
+            }
+        }],
+
+        './mongodb': {},
+        './common': {},
+
+        './task': apiPluginOptions,
+        './repository': apiPluginOptions,
+        './push': apiPluginOptions,
+        './result': apiPluginOptions,
+
+        './web': {}
     }
 });
-
-server.route({
-    path: '/',
-    method: 'GET',
-    handler: function(request, reply) {
-        reply.redirect('/docs');
-    }
-});
-
-server.on('log', function (event, tags) {
-    console.log('Server error: ' + (event.data || 'unspecified'), tags);
-});
-
-server.on('request-internal', function (request, event, tags) {
-    if (tags.validation) {
-        console.error('-> ' + event.data);
-    }
-});
-
-
-server.start(function() {
-    console.log('started on http://localhost:7000');
-});
-
