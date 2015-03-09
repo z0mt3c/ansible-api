@@ -11,18 +11,18 @@ schema.Post = Joi.object({
     project: id.required(),
     playbook: Joi.string().required(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug']).default('default')
-}).options({className: 'CreateJob'});
+}).meta({className: 'CreateJob'});
 
 schema.GetParams = Joi.object({
     id: Joi.string().regex(/^[a-f0-9]+$/i).length(24)
-}).options({className: 'ResourceParams'});
+}).meta({className: 'ResourceParams'});
 
 schema.Put = schema.Post;
 var keys = _.keys(schema.Post.describe().children);
-schema.Patch = schema.Post.options({className: 'PatchJob'}).optionalKeys(keys);
+schema.Patch = schema.Post.meta({className: 'PatchJob'}).optionalKeys(keys);
 
 schema.Get = Joi.object({
     id: Joi.string().regex(/^[a-f0-9]+$/i).length(24)
-}).concat(schema.Post).options({className: 'Job'});
+}).concat(schema.Post).meta({className: 'Job'});
 
-schema.List = Joi.array().includes(schema.Get).options({className: 'JobList'});
+schema.List = Joi.array().items(schema.Get).meta({className: 'JobList'});

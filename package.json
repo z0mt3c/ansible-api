@@ -13,7 +13,7 @@
     "hapi-swaggered": "*",
     "hapi-swaggered-ui": "*",
     "hoek": "*",
-    "joi": "^5.1.0",
+    "joi": "6.x.x",
     "lodash": "*",
     "mongodb": "^2.0.18",
     "node-dir": "^0.1.6",

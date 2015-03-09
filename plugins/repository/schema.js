@@ -10,18 +10,18 @@ schema.Post = Joi.object({
     type: Joi.string().valid('git').required(),
     url: Joi.string().required(),
     branch: Joi.string().optional()
-}).options({className: 'CreateProject'});
+}).meta({className: 'CreateProject'});
 
 schema.GetParams = Joi.object({
     id: id.required()
-}).options({className: 'ResourceParams'});
+}).meta({className: 'ResourceParams'});
 
 schema.Put = schema.Post;
 var keys = _.keys(schema.Post.describe().children);
-schema.Patch = schema.Post.options({ className: 'PatchProject' }).optionalKeys(keys);
+schema.Patch = schema.Post.meta({ className: 'PatchProject' }).optionalKeys(keys);
 
 schema.Get = Joi.object({
     id: id.required()
-}).concat(schema.Post).options({className: 'Project'});
+}).concat(schema.Post).meta({className: 'Project'});
 
-schema.List = Joi.array().includes(schema.Get).options({className: 'ProjectList'});
+schema.List = Joi.array().items(schema.Get).meta({className: 'ProjectList'});
