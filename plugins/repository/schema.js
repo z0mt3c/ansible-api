@@ -25,3 +25,8 @@ schema.Get = Joi.object({
 }).concat(schema.Post).meta({className: 'Project'});
 
 schema.List = Joi.array().items(schema.Get).meta({className: 'ProjectList'});
+schema.RepositoryFiles = Joi.array().items(Joi.string()).meta({className: 'RepositoryFiles'});
+
+schema.RunRef = Joi.object({
+    runId: id.required()
+}).meta({className: 'RunReference'});

@@ -8,7 +8,7 @@ schema.Post = Joi.object({
     name: Joi.string().required(),
     type: Joi.string().valid('ansible').default('ansible').optional(),
     description: Joi.string().optional(),
-    project: id.required(),
+    repositoryId: id.required(),
     playbook: Joi.string().required(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug']).default('default')
 }).meta({className: 'CreateJob'});
@@ -26,3 +26,7 @@ schema.Get = Joi.object({
 }).concat(schema.Post).meta({className: 'Job'});
 
 schema.List = Joi.array().items(schema.Get).meta({className: 'JobList'});
+
+schema.RunRef = Joi.object({
+    runId: id.required()
+}).meta({className: 'RunReference'});

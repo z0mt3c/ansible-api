@@ -84,10 +84,21 @@ internals.compose({
         './mongodb': {},
         './common': {},
 
-        './task': apiPluginOptions,
-        './repository': apiPluginOptions,
+        // Run & persist results
+        './run': apiPluginOptions,
+        // Listens to logs an pushs them out through socket.io
         './push': apiPluginOptions,
-        './result': apiPluginOptions,
+
+        // Git repos with anible playbooks
+        './repository': apiPluginOptions,
+        // Ansible host inventory
+        './inventory': apiPluginOptions,
+        // Task definitions repo + playbook + parameters
+        './task': apiPluginOptions,
+
+
+        // Storing SSH Credentials
+        './credential': apiPluginOptions,
 
         './web': {}
     }

@@ -14,7 +14,7 @@ var resource = module.exports = {
             return reply(Boom.badImplementation('Terrible implementation', error))
         },
         replyNotFound: function(reply) {
-            return internals.replyNotFound(reply);
+            return reply(Boom.notFound());
         }
     },
     create: function(db, options) {

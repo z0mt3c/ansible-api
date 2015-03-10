@@ -3,6 +3,6 @@ exports.register = function(server, options, next) {
 };
 
 exports.register.attributes = {
-    name: 'result',
+    name: 'inventory',
     version: require('../../package.json').version
 };

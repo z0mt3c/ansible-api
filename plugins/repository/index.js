@@ -5,7 +5,6 @@ var ObjectID = require('mongodb').ObjectID;
 var Joi = require('joi');
 var Path = require('path');
 var dir = require('node-dir');
-var Spawnish = require('../../../spawnish');
 var _ = require('lodash');
 var Hoek = require('hoek');
 
@@ -13,6 +12,8 @@ exports.register = function(server, options, next) {
     Hoek.assert(options.repositoryPath, 'repositoryPath missing');
 
     var db = server.plugins.mongodb.db;
+    var Run = server.plugins.run;
+
     var collection = db.collection('repository');
     var tags = ['api', 'repositorys'];
     var routes = ResourceFactory.create(db, {
@@ -49,38 +50,19 @@ exports.register = function(server, options, next) {
                         return internals.sync(doc);
                     },
                     sync: function(doc) {
-                        var args = {
-                            file: Path.join(__dirname, 'playbooks/checkout.yml'),
-                            vars: {
-                                REPO: doc.url,
-                                TARGET: Path.join(options.repositoryPath, doc._id.toString())
-                            }
-                        };
-
-                        if (doc.branch) {
-                            args.vars.VERSION = doc.branch;
-                        }
-
-                        var git = new Spawnish.AnsiblePlaybook(args);
-
-                        git.on('std', function(msg) {
-                            console.log(msg)
+                        Run.sync(doc, function(error, run) {
+                            return reply({runId: run.id.toString()});
                         });
-
-                        git.run();
-
-                        return reply(doc);
                     }
                 };
 
                 collection.findOne({_id: objectID}, internals.found);
             },
             response: {
-                schema: Schema.Get
+                schema: Schema.RunRef
             }
         }
     });
-
 
 
     server.route({
@@ -115,7 +97,7 @@ exports.register = function(server, options, next) {
                 );
             },
             response: {
-                //schema: Schema.Get
+                schema: Schema.RepositoryFiles
             }
         }
     });
