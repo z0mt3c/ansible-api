@@ -48,7 +48,7 @@ exports.register = function(server, options, next) {
                         return internals.run(doc);
                     },
                     run: function(doc) {
-                        Run.sync(doc, function(error, run) {
+                        Run.task(doc, function(error, run) {
                             return reply({ runId: run.id.toString() });
                         });
                     }

@@ -16,7 +16,7 @@ exports.register = function(server, options, next) {
     var internals = {
         createSpawnableForTask(task) {
             var args = {
-                file: Path.join(options.repositoryPath, task.project, task.playbook),
+                file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
                 verbosity: task.verbosity,
                 vars: {}
             };

@@ -36,7 +36,7 @@ var resource = module.exports = {
                 description: 'List resources',
                 notes: 'List resources',
                 handler: function(request, reply) {
-                    getCollection().find({}).toArray(function(error, docs) {
+                    getCollection().find({}).sort({_id: -1}).toArray(function(error, docs) {
                         if (error) {
                             return resource.internals.replyError(reply, error);
                         }
