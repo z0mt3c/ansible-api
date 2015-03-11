@@ -49,12 +49,15 @@ exports.register = function(server, options, next) {
 
             run.once('exit', removeRun);
             run.once('error', removeRun);
+        },
+        logger: function(data) {
+            server.log(['push', 'task'], data);
         }
     };
 
     server.expose('task', function(task, reply) {
         var spawn = internals.createSpawnableForTask(task);
-        var run = new Run({type: 'task', collection: collection, spawn: spawn, task: task});
+        var run = new Run({type: 'task', collection: collection, spawn: spawn, task: task, log: internals.logger });
 
         // Make sure initial job is persisted
         run.save(function(error) {
@@ -66,7 +69,7 @@ exports.register = function(server, options, next) {
 
     server.expose('sync', function(repository, reply) {
         var spawn = internals.createSpawnableForSync(repository);
-        var run = new Run({type: 'sync', collection: collection, spawn: spawn, repository: repository});
+        var run = new Run({type: 'sync', collection: collection, spawn: spawn, repository: repository, log: internals.logger });
 
         // Make sure initial job is persisted
         run.save(function(error) {

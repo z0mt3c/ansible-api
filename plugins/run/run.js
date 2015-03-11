@@ -8,7 +8,7 @@ var Run = function(options) {
     this.id = new ObjectID();
     this.spawn = options.spawn;
     this.collection = options.collection;
-    this.logger = options.logger;
+    this.log = options.log;
     this.meta = _.pick(options, ['type', 'task', 'repository']);
     this._bind(this.spawn);
 };
@@ -19,7 +19,6 @@ Run.prototype._bind = function(task) {
     var message = this._log_message.bind(this);
     var error = this._log_error.bind(this);
     var exit = this._log_exit.bind(this);
-
     task.on('stdout', stdout);
     task.on('stderr', stderr);
     task.on('message', message);
@@ -34,20 +33,26 @@ Run.prototype.save = function(reply) {
     });
 };
 
-Run.prototype.__log = function(error, result) {
-    if (error) {
-        console.error('Error occurred', error, result);
+Run.prototype.__apply = function(update) {
+    this.collection.update({_id: this.id}, update, function(error, result) {
+        if (error) {
+            console.error('Error occurred', error, result);
+        }
+    });
+
+    if (this.log) {
+        this.log({ id: this.id.toString(), update: update });
     }
 };
 
 Run.prototype._log_output = function(type, data) {
     var push = {time: new Date(), channel: type, data: data};
-    this.collection.update({_id: this.id}, {$push: {output: push}}, this.__log.bind(this));
+    this.__apply({$push: {output: push}});
 };
 
 Run.prototype._log_exit = function(code) {
     this.duration = new Date().getTime() - this.startTime;
-    this.collection.update({_id: this.id}, {$set: {duration: this.duration, exitCode: code}}, this.__log.bind(this));
+    this.__apply({$set: {duration: this.duration, exitCode: code}});
 };
 
 Run.prototype._log_message = function(data) {
@@ -59,11 +64,11 @@ Run.prototype._log_message = function(data) {
         push.data = data;
     }
 
-    this.collection.update({_id: this.id}, {$push: {messages: push}}, this.__log.bind(this));
+    this.__apply({$push: {messages: push}});
 };
 
 Run.prototype._log_error = function(error) {
-    this.collection.update({_id: this.id}, {$set: {error: error}}, this.__log.bind(this));
+    this.__apply({$set: {error: error}});
 };
 
 Run.prototype.start = function() {
@@ -73,7 +78,7 @@ Run.prototype.start = function() {
 
 Run.prototype.kill = function(signal) {
     this.spawn.kill(signal);
-    this.collection.update({_id: this.id}, {$set: {killedAt: new Date()}}, this.__log.bind(this));
+    this.__apply({$set: {killedAt: new Date()}});
 };
 
 module.exports = Run;

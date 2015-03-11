@@ -27,7 +27,9 @@ exports.register = function(server, options, next) {
 
 
     server.on('log', function(event, tags) {
-        console.log('Server error: ' + (event.data || 'unspecified'), tags);
+        if (!tags.push) {
+            console.log('Logged: ', (event.data || 'unspecified'), tags);
+        }
     });
 
     server.on('request-internal', function(request, event, tags) {
