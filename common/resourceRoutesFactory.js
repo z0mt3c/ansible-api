@@ -3,6 +3,7 @@ var Boom = require('boom');
 var Hoek = require('hoek');
 var _ = require('lodash');
 var async = require('async');
+var xResultCount = require('x-result-count');
 
 var defaults = {
     prefix: '/',
@@ -26,7 +27,7 @@ var resource = module.exports = {
                 }
             });
 
-            return query || {};
+            return query || {};
         },
         replyError: function(reply, error) {
             return reply(Boom.badImplementation('Terrible implementation', error))
@@ -47,8 +48,8 @@ var resource = module.exports = {
         };
 
         var listDescription = schema.List.describe();
-        var listMeta = _.extend.apply(this, [{}].concat(listDescription.meta)) || {};
-        var itemProjection = listMeta.itemProjection || {};
+        var listMeta = _.extend.apply(this, [{}].concat(listDescription.meta)) || {};
+        var itemProjection = listMeta.itemProjection || {};
 
         routes.push({
             path: options.prefix,
@@ -77,10 +78,11 @@ var resource = module.exports = {
                                 return resource.internals.replyError(reply, error);
                             }
 
-                            var from = request.query.skip;
-                            var to = (from + results[0].length);
-                            var total = results[1];
-                            return reply(results[0]).header('X-Result-Count', from + '-' + to + '/' + total);
+                            return reply(results[0]).header('X-Result-Count', xResultCount.generate({
+                                skip: request.query.skip,
+                                count: results[0].length,
+                                total: results[1]
+                            }));
                         });
                 },
                 response: {
