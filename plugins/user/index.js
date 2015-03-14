@@ -1,13 +1,13 @@
 var Schema = require('./schema');
 var ResourceFactory = require('../../common/resourceRoutesFactory');
-var tags = ['api', 'inventories'];
+var tags = ['api', 'users'];
 
 exports.register = function(server, options, next) {
     var db = server.plugins.mongodb.db;
-    var collection = db.collection('inventory');
+    var collection = db.collection('user');
     var routes = ResourceFactory.create(collection, {
         schema: Schema,
-        prefix: '/inventory',
+        prefix: '/user',
         tags: tags
     });
 
@@ -16,6 +16,6 @@ exports.register = function(server, options, next) {
 };
 
 exports.register.attributes = {
-    name: 'inventory',
+    name: 'user',
     version: require('../../package.json').version
 };

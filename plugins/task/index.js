@@ -14,10 +14,8 @@ exports.register = function(server, options, next) {
 
     var collection = db.collection('task');
     var tags = ['api', 'tasks'];
-    var routes = ResourceFactory.create(db, {
-        db: db,
+    var routes = ResourceFactory.create(collection, {
         schema: Schema,
-        collection: 'task',
         prefix: '/task',
         tags: tags
     });

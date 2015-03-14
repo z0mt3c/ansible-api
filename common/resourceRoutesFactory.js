@@ -12,6 +12,24 @@ var defaults = {
 
 var resource = module.exports = {
     internals: {
+        prepareSort: function(sort) {
+            if (typeof sort === 'string' && sort.length > 2) {
+                var firstChar = sort.substr(0, 1);
+                var asc = firstChar === '+';
+                var desc = firstChar === '-';
+                var field = asc || desc ? sort.substr(1) : sort;
+
+                if (field === 'id') {
+                    field = '_id';
+                }
+
+                var sort = {};
+                sort[field] = asc ? 1 : -1;
+                return sort;
+            }
+
+            return {_id: -1};
+        },
         prepareQuery: function(rawQuery) {
             var query = _.omit(rawQuery, ['sort', 'skip', 'limit']);
             _.each(query, function(value, key) {
@@ -36,15 +54,14 @@ var resource = module.exports = {
             return reply(Boom.notFound());
         }
     },
-    create: function(db, options) {
-        Hoek.assert(options.collection);
+    create: function(collection, options) {
         options = Hoek.applyToDefaults(defaults, options || {});
 
         var schema = options.schema;
         var routes = [];
 
         var getCollection = function() {
-            return db.collection(options.collection);
+            return collection;
         };
 
         var listDescription = schema.List.describe();
@@ -63,7 +80,8 @@ var resource = module.exports = {
                 },
                 handler: function(request, reply) {
                     var query = resource.internals.prepareQuery(request.query);
-                    var cursor = getCollection().find(query, itemProjection).limit(request.query.limit).skip(request.query.skip).sort({_id: -1});
+                    var sort = resource.internals.prepareSort(request.query.sort);
+                    var cursor = getCollection().find(query, itemProjection).limit(request.query.limit).skip(request.query.skip).sort(sort);
 
                     async.parallel([
                             function(next) {

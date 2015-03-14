@@ -88,6 +88,8 @@ internals.compose({
         './run': apiPluginOptions,
         // Listens to logs an pushs them out through socket.io
         './push': apiPluginOptions,
+        // User
+        './user': apiPluginOptions,
 
         // Git repos with anible playbooks
         './repository': apiPluginOptions,

@@ -15,4 +15,6 @@ schema.GetParams = Joi.object({
     id: Schema.ID.required()
 }).meta({className: 'ResourceParams'});
 
-schema.Query = schema.Get.concat(Schema.Paging).meta({className: 'RunQuery'}).optionalKeys(_.keys(schema.Get.describe().children));
+schema.Query = Joi.object({
+    type: Joi.string().optional()
+}).concat(Schema.Paging).meta({className: 'RunQuery'});

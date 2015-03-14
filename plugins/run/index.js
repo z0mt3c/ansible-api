@@ -105,13 +105,12 @@ exports.register = function(server, options, next) {
         }
     });
 
-    var routes = ResourceFactory.create(db, {
-        db: db,
+    var routes = ResourceFactory.create(collection, {
         schema: Schema,
-        collection: 'run',
         prefix: '/run',
         tags: tags
     });
+
     server.route(routes);
 
     next();
