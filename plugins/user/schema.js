@@ -19,7 +19,7 @@ schema.Get = Joi.object({
     id: Schema.ID.required()
 }).concat(schema.Post).meta({className: 'User'});
 
-schema.Put = schema.Post;
+schema.Put = schema.Post.meta({ className: 'UserPatch' }).optionalKeys(['password']);
 schema.Patch = schema.Post.meta({ className: 'UserPatch' }).optionalKeys(_.keys(schema.Post.describe().children));
 schema.Query = schema.Post.concat(Schema.Paging).meta({ className: 'UserQuery' }).optionalKeys(_.keys(schema.Post.describe().children));
 schema.List = Joi.array().items(schema.Get).meta({className: 'UserList'});

@@ -7,6 +7,8 @@ var internals = {
             obj.id = obj._id.toString();
             delete obj._id;
         }
+
+        //delete obj.password;
     }
 };
 

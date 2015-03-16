@@ -4,6 +4,7 @@ var Hoek = require('hoek');
 var _ = require('lodash');
 var async = require('async');
 var xResultCount = require('x-result-count');
+var bcrypt = require('bcrypt');
 
 var defaults = {
     prefix: '/',
@@ -72,6 +73,7 @@ var resource = module.exports = {
             path: options.prefix,
             method: 'GET',
             config: {
+                auth: 'session',
                 tags: options.tags,
                 description: 'List resources',
                 notes: 'List resources',
@@ -114,6 +116,7 @@ var resource = module.exports = {
             path: options.prefix + '/{id}',
             method: 'GET',
             config: {
+                auth: 'session',
                 tags: options.tags,
                 description: 'List resources',
                 notes: 'List resources',
@@ -143,6 +146,7 @@ var resource = module.exports = {
             path: options.prefix + '/{id}',
             method: 'DELETE',
             config: {
+                auth: 'session',
                 tags: options.tags,
                 description: 'Delete resource with ID',
                 notes: 'Delete resource with ID',
@@ -174,6 +178,7 @@ var resource = module.exports = {
                 path: options.prefix,
                 method: 'POST',
                 config: {
+                    auth: 'session',
                     tags: options.tags,
                     description: 'Create resource',
                     notes: 'Create resource',
@@ -202,6 +207,7 @@ var resource = module.exports = {
                 path: options.prefix + '/{id}',
                 method: 'PUT',
                 config: {
+                    auth: 'session',
                     tags: options.tags,
                     description: 'Update resource with ID',
                     notes: 'Update resource with ID',
@@ -235,6 +241,7 @@ var resource = module.exports = {
                 path: options.prefix + '/{id}',
                 method: 'PATCH',
                 config: {
+                    auth: 'session',
                     tags: options.tags,
                     description: 'Patch resource with ID',
                     notes: 'Patch resource with ID',

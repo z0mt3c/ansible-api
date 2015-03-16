@@ -6,10 +6,12 @@
   "license": "MIT",
   "dependencies": {
     "async": "^0.9.0",
+    "bcrypt": "^0.8.1",
     "boom": "^2.6.1",
     "glue": "^2.0.0",
     "handlebars": "^3.0.0",
     "hapi": "8.x.x",
+    "hapi-auth-cookie": "^2.0.0",
     "hapi-swaggered": "*",
     "hapi-swaggered-ui": "*",
     "hoek": "*",

@@ -81,8 +81,10 @@ internals.compose({
             }
         }],
 
+
         './mongodb': {},
         './common': {},
+        './authentication': {},
 
         // Run & persist results
         './run': apiPluginOptions,
