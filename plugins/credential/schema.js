@@ -5,7 +5,8 @@ var schema = module.exports = {};
 var Schema = require('../../common/schema');
 
 schema.Post = Joi.object({
-    name: Joi.string().required()
+    name: Joi.string().required(),
+    path: Joi.string()
 }).meta({className: 'CredentialCreate'});
 
 schema.GetParams = Joi.object({

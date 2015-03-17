@@ -8,6 +8,7 @@ schema.Post = Joi.object({
     type: Joi.string().valid('ansible').optional(),
     description: Joi.string().optional(),
     repositoryId: Schema.ID.required(),
+    credentialId: Schema.ID.required(),
     playbook: Joi.string().required(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug'])
 }).meta({className: 'TaskCreate'});

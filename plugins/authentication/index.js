@@ -3,6 +3,7 @@ var ObjectID = require('mongodb').ObjectID;
 var schema = require('./schema');
 var Boom = require('boom');
 var Path = require('path');
+var bcrypt = require('bcrypt');
 
 exports.register = function(server, options, next) {
     server.views({
@@ -41,16 +42,25 @@ exports.register = function(server, options, next) {
                     }
 
                     users.findOne({ email: request.payload.username }, function(error, user) {
-                        if (user && user.password === request.payload.password) {
-                            request.auth.session.set({
-                                id: user._id.toString(),
-                                name: user.name,
-                                email: user.email
-                            });
+                        if (user) {
+                            bcrypt.compare(request.payload.password, user.password, function(error, matches) {
+                                    console.log(error);
+                                if (error) {
+                                    return reply(error);
+                                } else if (matches) {
+                                    request.auth.session.set({
+                                        id: user._id.toString(),
+                                        name: user.name,
+                                        email: user.email
+                                    });
 
-                            return reply.redirect('/');
+                                    return reply.redirect('/');
+                                } else {
+                                    return reply.view('login', { message: 'Invalid username/password' });
+                                }
+                            });
                         } else {
-                            return reply.view('login', { message: 'Invalid username/password' });
+                            return reply.view('login', { message: 'Invalid username' });
                         }
                     });
                 },

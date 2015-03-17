@@ -13,12 +13,26 @@ var defaults = {
 
 var resource = module.exports = {
     internals: {
+        hash: function(data, cb) {
+            if (_.has(data, 'password')) {
+                bcrypt.hash(data.password, 8, function(error, hash) {
+                    if (error) {
+                        throw error;
+                    }
+
+                    data.password = hash;
+                    return cb(data);
+                });
+            } else {
+                return cb(data);
+            }
+        },
         prepareSort: function(sort) {
             if (typeof sort === 'string' && sort.length > 2) {
                 var firstChar = sort.substr(0, 1);
                 var asc = firstChar === '+';
                 var desc = firstChar === '-';
-                var field = asc || desc ? sort.substr(1) : sort;
+                var field = asc || desc ? sort.substr(1) : sort;
 
                 if (field === 'id') {
                     field = '_id';
@@ -156,7 +170,6 @@ var resource = module.exports = {
                 handler: function(request, reply) {
                     var objectID = new ObjectID(request.params.id);
                     getCollection().findOneAndDelete({_id: objectID}, function(error, doc) {
-                        console.log(doc);
                         if (error) {
                             return resource.internals.replyError(reply, error);
                         } else if (!doc || !doc.value) {
@@ -186,11 +199,13 @@ var resource = module.exports = {
                         payload: schema.Post
                     },
                     handler: function(request, reply) {
-                        getCollection().insertOne(request.payload, {returnOriginal: false}, function(error, doc) {
-                            if (error) {
-                                return resource.internals.replyError(reply, error);
-                            }
-                            return reply(request.payload);
+                        resource.internals.hash(request.payload, function(data) {
+                            getCollection().insertOne(data, {returnOriginal: false}, function(error) {
+                                if (error) {
+                                    return resource.internals.replyError(reply, error);
+                                }
+                                return reply(data);
+                            });
                         });
                     },
                     response: {
@@ -218,14 +233,16 @@ var resource = module.exports = {
                     handler: function(request, reply) {
                         var objectID = new ObjectID(request.params.id);
 
-                        getCollection().findOneAndReplace({_id: objectID}, request.payload, {returnOriginal: false}, function(error, doc) {
-                            if (error) {
-                                return resource.internals.replyError(reply, error);
-                            } else if (!doc || !doc.value) {
-                                return resource.internals.replyNotFound(reply);
-                            }
+                        resource.internals.hash(request.payload, function(data) {
+                            getCollection().findOneAndReplace({_id: objectID}, data, {returnOriginal: false}, function(error, doc) {
+                                if (error) {
+                                    return resource.internals.replyError(reply, error);
+                                } else if (!doc || !doc.value) {
+                                    return resource.internals.replyNotFound(reply);
+                                }
 
-                            return reply(doc.value);
+                                return reply(doc.value);
+                            });
                         });
                     },
                     response: {
@@ -252,14 +269,16 @@ var resource = module.exports = {
                     handler: function(request, reply) {
                         var objectID = new ObjectID(request.params.id);
 
-                        getCollection().findOneAndUpdate({_id: objectID}, {$set: request.payload}, {returnOriginal: false}, function(error, doc) {
-                            if (error) {
-                                return resource.internals.replyError(reply, error);
-                            } else if (!doc || !doc.value) {
-                                return resource.internals.replyNotFound(reply);
-                            }
+                        resource.internals.hash(request.payload, function(data) {
+                            getCollection().findOneAndUpdate({_id: objectID}, {$set: data}, {returnOriginal: false}, function(error, doc) {
+                                if (error) {
+                                    return resource.internals.replyError(reply, error);
+                                } else if (!doc || !doc.value) {
+                                    return resource.internals.replyNotFound(reply);
+                                }
 
-                            return reply(doc.value);
+                                return reply(doc.value);
+                            });
                         });
                     },
                     response: {

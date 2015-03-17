@@ -8,7 +8,7 @@ var internals = {
             delete obj._id;
         }
 
-        //delete obj.password;
+        delete obj.password;
     }
 };
 
