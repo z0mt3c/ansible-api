@@ -22,7 +22,6 @@ exports.register = function(server, options, next) {
     });
 
     server.route(routes);
-
     server.route({
         path: '/task/{id}/run',
         method: 'POST',

@@ -6,7 +6,14 @@ var Schema = require('../../common/schema');
 
 schema.Post = Joi.object({
     name: Joi.string().required(),
-    path: Joi.string()
+    description: Joi.string().optional(),
+    sshUser: Joi.string().optional(),
+    sshAuthType: Joi.string().valid('password', 'key', 'keyPath').required(),
+    sshPassword: Joi.string().optional(),
+    sshKey: Joi.string().when('sshAuthType', { is: 'key', then: Joi.required() }),
+    sshKeyPath: Joi.string().when('sshAuthType', { is: 'keyPath', then: Joi.required() }),
+    sshKeyPassword: Joi.string().optional()
+    //sshLoginMethod: Joi.string().valid(['SUDO', 'SU']).optional(),
 }).meta({className: 'CredentialCreate'});
 
 schema.GetParams = Joi.object({

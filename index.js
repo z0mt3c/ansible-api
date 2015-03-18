@@ -36,6 +36,7 @@ var apiPluginOptions = [{
         prefix: '/api'
     },
     options: {
+        credentialPath: __dirname + '/data',
         repositoryPath: __dirname + '/data'
     }
 }];

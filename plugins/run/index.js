@@ -16,14 +16,15 @@ exports.register = function(server, options, next) {
 
     var internals = {
         createSpawnableForTask(task, cb) {
-            credential.findOne({ _id: new ObjectID(task.credentialId)}, function(error, credential) {
+            var credentialId = new ObjectID(task.credentialId);
+            server.plugins.credential.prepare(credentialId, function(error, credential) {
                 var args = {
                     file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
                     check: task.runType === 'check',
                     verbosity: task.verbosity,
                     limit: task.limit,
                     inventoryFile: null,
-                    privateKey: credential ? credential.path : undefined,
+                    privateKey: credential ? credential.sshKeyPath : undefined,
                     vars: {}
                 };
 
