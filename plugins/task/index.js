@@ -5,6 +5,7 @@ var Joi = require('joi');
 var Hoek = require('hoek');
 var Path = require('path');
 var dir = require('node-dir');
+var Boom = require('boom');
 var _ = require('lodash');
 var ObjectID = require('mongodb').ObjectID;
 
@@ -47,6 +48,10 @@ exports.register = function(server, options, next) {
                     },
                     run: function(doc) {
                         Run.task(doc, function(error, run) {
+                            if (error) {
+                                return reply(Boom.badImplementation('Run failed', error));
+                            }
+
                             return reply({ runId: run.id.toString() });
                         });
                     }

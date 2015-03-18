@@ -10,20 +10,27 @@ var Schema = require('./schema');
 exports.register = function(server, options, next) {
     var db = server.plugins.mongodb.db;
     var collection = db.collection('run');
+    var credential = db.collection('credential');
     var tags = ['api', 'runs'];
     var runs = [];
 
     var internals = {
-        createSpawnableForTask(task) {
-            var args = {
-                file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
-                verbosity: task.verbosity,
-                vars: {}
-            };
+        createSpawnableForTask(task, cb) {
+            credential.findOne({ _id: new ObjectID(task.credentialId)}, function(error, credential) {
+                var args = {
+                    file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
+                    check: task.runType === 'check',
+                    verbosity: task.verbosity,
+                    inventoryFile: null,
+                    privateKey: credential ? credential.path : undefined,
+                    vars: {}
+                };
 
-            return new Spawnish.AnsiblePlaybook(args);
+                var spawn = new Spawnish.AnsiblePlaybook(args);
+                return cb(error, spawn);
+            });
         },
-        createSpawnableForSync(repository) {
+        createSpawnableForSync(repository, cb) {
             var args = {
                 file: Path.join(__dirname, 'playbooks/checkout.yml'),
                 vars: {
@@ -36,7 +43,9 @@ exports.register = function(server, options, next) {
                 args.vars.VERSION = repository.branch;
             }
 
-            return new Spawnish.AnsiblePlaybook(args);
+
+            var task = new Spawnish.AnsiblePlaybook(args);
+            return cb(null, task);
         },
         trackSpawn(run) {
             var removeRun = function() {
@@ -56,26 +65,42 @@ exports.register = function(server, options, next) {
     };
 
     server.expose('task', function(task, reply) {
-        var spawn = internals.createSpawnableForTask(task);
-        var run = new Run({type: 'task', collection: collection, spawn: spawn, task: task, log: internals.logger });
+        internals.createSpawnableForTask(task, function(error, spawn) {
+            if (error) {
+                return reply(error);
+            }
 
-        // Make sure initial job is persisted
-        run.save(function(error) {
-            reply(error, run);
-            internals.trackSpawn(spawn);
-            return run.start();
+            var run = new Run({type: 'task', collection: collection, spawn: spawn, task: task, log: internals.logger});
+
+            // Make sure initial job is persisted
+            run.save(function(error) {
+                reply(error, run);
+                internals.trackSpawn(spawn);
+                return run.start();
+            });
         });
     });
 
     server.expose('sync', function(repository, reply) {
-        var spawn = internals.createSpawnableForSync(repository);
-        var run = new Run({type: 'sync', collection: collection, spawn: spawn, repository: repository, log: internals.logger });
+        internals.createSpawnableForSync(repository, function(error, spawn) {
+            if (error) {
+                return reply(error);
+            }
 
-        // Make sure initial job is persisted
-        run.save(function(error) {
-            reply(error, run);
-            internals.trackSpawn(spawn);
-            return run.start();
+            var run = new Run({
+                type: 'sync',
+                collection: collection,
+                spawn: spawn,
+                repository: repository,
+                log: internals.logger
+            });
+
+            // Make sure initial job is persisted
+            run.save(function(error) {
+                reply(error, run);
+                internals.trackSpawn(spawn);
+                return run.start();
+            });
         });
     });
 
