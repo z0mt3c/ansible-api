@@ -21,6 +21,7 @@ exports.register = function(server, options, next) {
                     file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
                     check: task.runType === 'check',
                     verbosity: task.verbosity,
+                    limit: task.limit,
                     inventoryFile: null,
                     privateKey: credential ? credential.path : undefined,
                     vars: {}
