@@ -4,8 +4,10 @@ var ObjectID = require('mongodb').ObjectID;
 var internals = {
     objectIdString(obj) {
         if (obj && obj._id instanceof ObjectID) {
-            obj.id = obj._id.toString();
+            var id = obj._id;
+            obj.id = id.toString();
             delete obj._id;
+            obj.createdAt = id.getTimestamp();
         }
 
         delete obj.password;

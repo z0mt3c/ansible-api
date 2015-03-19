@@ -6,10 +6,14 @@ var schema = module.exports = {};
 schema.Post = Joi.object({
     name: Joi.string().required(),
     type: Joi.string().valid('ansible').optional(),
-    description: Joi.string().optional(),
+    runType: Joi.string().valid('normal', 'check').default('normal').optional(),
+    description: Joi.string().allow('').optional(),
     repositoryId: Schema.ID.required(),
     credentialId: Schema.ID.required(),
     playbook: Joi.string().required(),
+    forks: Joi.number().default(0).optional(),
+    extraVars: Joi.object().pattern(/./, [Joi.number(), Joi.string()]).optional(),
+    hostLimit: Joi.string().allow('').optional(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug'])
 }).meta({className: 'TaskCreate'});
 
@@ -19,7 +23,7 @@ schema.GetParams = Joi.object({
 
 schema.Put = schema.Post;
 schema.Patch = schema.Post.meta({className: 'TaskPatch'}).optionalKeys(_.keys(schema.Post.describe().children));
-schema.Query = schema.Post.concat(Schema.Paging).meta({className: 'TaskQuery'}).optionalKeys(_.keys(schema.Post.describe().children));
+schema.Query = Schema.Paging.meta({className: 'TaskQuery'});
 
 schema.Get = Joi.object({
     id: Schema.ID

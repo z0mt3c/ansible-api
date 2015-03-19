@@ -6,6 +6,7 @@ var Hoek = require('hoek');
 var _ = require('lodash');
 var Run = require('./run');
 var Schema = require('./schema');
+var async = require('async');
 
 exports.register = function(server, options, next) {
     var db = server.plugins.mongodb.db;
@@ -17,15 +18,23 @@ exports.register = function(server, options, next) {
     var internals = {
         createSpawnableForTask(task, cb) {
             var credentialId = new ObjectID(task.credentialId);
-            server.plugins.credential.prepare(credentialId, function(error, credential) {
+
+            async.parallel({
+                credential: function(next) {
+                    return server.plugins.credential.prepare(credentialId, next);
+                }
+            }, function(error, results) {
+                console.log(arguments);
+                var credential = results.credential;
                 var args = {
                     file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
                     check: task.runType === 'check',
                     verbosity: task.verbosity,
-                    limit: task.limit,
+                    limit: task.hostLimit,
                     inventoryFile: null,
+                    user: task.sshUser,
                     privateKey: credential ? credential.sshKeyPath : undefined,
-                    vars: {}
+                    extraVars: task.extraVars
                 };
 
                 var spawn = new Spawnish.AnsiblePlaybook(args);
@@ -62,7 +71,20 @@ exports.register = function(server, options, next) {
             run.once('error', removeRun);
         },
         logger: function(data) {
-            server.log(['push', 'task'], data);
+            var tags = ['push', 'task'];
+
+            var app = Hoek.reach(data, 'update.$push.messages._app_ext');
+
+            if (app) {
+                tags.push(app);
+            }
+
+            if (app === 'ansible' && Hoek.reach(data, 'update.$push.messages.result.ansible_facts')) {
+                tags.push('facts')
+            }
+
+            server.log(tags, data);
+
         }
     };
 

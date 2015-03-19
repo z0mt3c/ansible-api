@@ -98,6 +98,7 @@ internals.compose({
         './repository': apiPluginOptions,
         // Ansible host inventory
         './inventory': apiPluginOptions,
+        './host': apiPluginOptions,
         // Task definitions repo + playbook + parameters
         './task': apiPluginOptions,
 

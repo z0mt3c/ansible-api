@@ -41,10 +41,9 @@ exports.register = function(server, options, next) {
                         return reply.redirect('/');
                     }
 
-                    users.findOne({ email: request.payload.username }, function(error, user) {
+                    users.findOne({ active: true, email: request.payload.username }, function(error, user) {
                         if (user) {
                             bcrypt.compare(request.payload.password, user.password, function(error, matches) {
-                                    console.log(error);
                                 if (error) {
                                     return reply(error);
                                 } else if (matches) {

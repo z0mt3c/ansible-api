@@ -7,6 +7,7 @@ var Schema = require('../../common/schema');
 schema.Post = Joi.object({
     name: Joi.string().required(),
     description: Joi.string().optional(),
+    type: Joi.string().valid('machine', 'repository').required(),
     sshUser: Joi.string().optional(),
     sshAuthType: Joi.string().valid('password', 'key', 'keyPath').required(),
     sshPassword: Joi.string().optional(),
