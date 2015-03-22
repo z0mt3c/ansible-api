@@ -25,35 +25,43 @@ exports.register = function(server, options, next) {
                 }
             }, function(error, results) {
                 console.log(arguments);
-                var credential = results.credential;
-                var args = {
+
+                var credential = results.credential || {};
+                var extraVars = _.extend({}, task.extraVars);
+
+                var spawnArgs = {
                     file: Path.join(options.repositoryPath, task.repositoryId, task.playbook),
                     check: task.runType === 'check',
                     verbosity: task.verbosity,
                     limit: task.hostLimit,
-                    inventoryFile: null,
-                    user: task.sshUser,
-                    privateKey: credential ? credential.sshKeyPath : undefined,
-                    extraVars: task.extraVars
+                    inventoryFile: Path.join(__dirname, '../../bin/inventory.js'),
+                    user: credential.sshUser,
+                    privateKey: credential.sshKeyPath,
+                    extraVars: extraVars
                 };
 
-                var spawn = new Spawnish.AnsiblePlaybook(args);
+                var spawnOptions = {
+                    env: {
+                        ANSIBLE_MASTER_INVENTORY_ID: task.inventoryId
+                    }
+                };
+
+                var spawn = new Spawnish.AnsiblePlaybook(spawnArgs, spawnOptions);
                 return cb(error, spawn);
             });
         },
         createSpawnableForSync(repository, cb) {
             var args = {
                 file: Path.join(__dirname, 'playbooks/checkout.yml'),
-                vars: {
+                extraVars: {
                     REPO: repository.url,
                     TARGET: Path.join(options.repositoryPath, repository._id.toString())
                 }
             };
 
             if (repository.branch) {
-                args.vars.VERSION = repository.branch;
+                args.extraVars.VERSION = repository.branch;
             }
-
 
             var task = new Spawnish.AnsiblePlaybook(args);
             return cb(null, task);

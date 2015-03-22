@@ -21,11 +21,15 @@
     "node-dir": "^0.1.6",
     "socket.io": "^1.3.4",
     "winston": "*",
-    "x-result-count": "^1.0.0"
+    "x-result-count": "^1.0.0",
+    "yargs": "^3.5.4"
   },
   "devDependencies": {},
   "engines": {
     "node": ">=0.10.0"
+  },
+  "bin": {
+    "ansible-master-inventory": "./bin/inventory.js"
   },
   "main": "index.js"
 }

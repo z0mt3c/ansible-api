@@ -9,6 +9,7 @@ schema.Post = Joi.object({
     runType: Joi.string().valid('normal', 'check').default('normal').optional(),
     description: Joi.string().allow('').optional(),
     repositoryId: Schema.ID.required(),
+    inventoryId: Schema.ID.required(),
     credentialId: Schema.ID.required(),
     playbook: Joi.string().required(),
     forks: Joi.number().default(0).optional(),
