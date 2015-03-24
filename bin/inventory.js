@@ -2,51 +2,58 @@
 var fs = require('fs');
 var argv = require('yargs').argv;
 var Hoek = require('hoek');
-
-var dummyResult = {
-    _meta: {
-        hostvars: {
-            'mongo001.int.w0rk.de': {asdf: 1234}
-        }
-    },
-    mongodb: {
-        hosts: ['mongo001.int.w0rk.de'],
-        vars: {
-            b: false
-        },
-        children: ['mongodb2']
-    },
-    mongodb2: ['mongo001.int.w0rk.de']
-};
-
+var _ = require('lodash');
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 
-var inventoryId = process.env['ANSIBLE_MASTER_INVENTORY_ID'];
-Hoek.assert(inventoryId, 'No inventory id present');
 var options = {url: 'mongodb://localhost:27017/ansible'};
 
 var internals = {
-    log: function(data) {
-        fs.writeFileSync(__dirname + '/test.log', data);
+    assert: function(condition, message) {
+        if (!condition) {
+            console.error('ERROR: ' + message);
+            process.exit(1);
+        }
     },
     result: function(result) {
         var formattedResult = JSON.stringify(result || {}, null, '  ');
-        internals.log(formattedResult);
         console.log(formattedResult);
     }
 };
 
+var inventoryId = process.env['ANSIBLE_MASTER_INVENTORY_ID'];
+internals.assert(inventoryId, 'No inventory id present');
+
 MongoClient.connect(options.url, function(error, db) {
-    Hoek.assert(!error, 'DB Connection failed');
+    internals.assert(!error, 'DB Connection failed');
     var inventories = db.collection('inventory');
+    var hosts = db.collection('host');
 
     inventories.findOne(new ObjectID(inventoryId), function(error, inventory) {
-        Hoek.assert(!error, 'Error while fetchting inventory');
-        Hoek.assert(inventory, 'Inventory not found');
-        //console.log(inventory);
-        internals.result(dummyResult);
-        db.close();
+        internals.assert(!error, 'Error while fetchting inventory');
+        internals.assert(inventory, 'Inventory not found');
+
+        var containingHosts = _.unique(_.reduce(inventory.groups, function(memo, group) {
+            if (_.isArray(group.hosts) && group.hosts.length > 0) {
+                memo = memo.concat(group.hosts);
+            }
+            return memo;
+        }, []));
+
+        hosts.find({name: {$in: containingHosts}}, {name: 1, vars: 1}).toArray(function(error, hostDocuments) {
+            internals.assert(!error, 'Error while fetchting hosts');
+
+            var result = _.indexBy(inventory.groups, 'name');
+            var hostvars = _.reduce(hostDocuments, function(memo, entry) {
+                memo[entry.name] = entry.vars;
+                return memo;
+            }, {});
+
+            result = _.extend({_meta: {hostvars: hostvars}}, result);
+            internals.result(result);
+
+            db.close();
+        });
     });
 });

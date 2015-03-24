@@ -5,7 +5,14 @@ var schema = module.exports = {};
 var Schema = require('../../common/schema');
 
 schema.Post = Joi.object({
-    name: Joi.string().required()
+    name: Joi.string().required(),
+    description: Joi.string().optional(),
+    groups: Joi.array().items(Joi.object({
+        name: Joi.string().required(),
+        hosts: Joi.array().items(Joi.string()),
+        vars: Schema.Vars,
+        children: Joi.array().items(Joi.string())
+    }))
 }).meta({className: 'InventoryCreate'});
 
 schema.GetParams = Joi.object({

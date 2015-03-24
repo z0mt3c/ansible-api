@@ -7,3 +7,5 @@ schema.Paging = Joi.object({
     sort: Joi.string().optional()
 }).meta({className: 'Paging'});
 
+schema.Vars = Joi.object().pattern(/./, [Joi.number(), Joi.string()]).optional();
+

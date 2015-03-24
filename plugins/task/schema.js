@@ -13,7 +13,7 @@ schema.Post = Joi.object({
     credentialId: Schema.ID.required(),
     playbook: Joi.string().required(),
     forks: Joi.number().default(0).optional(),
-    extraVars: Joi.object().pattern(/./, [Joi.number(), Joi.string()]).optional(),
+    extraVars: Schema.Vars,
     hostLimit: Joi.string().allow('').optional(),
     verbosity: Joi.string().valid(['default', 'verbose', 'debug'])
 }).meta({className: 'TaskCreate'});
