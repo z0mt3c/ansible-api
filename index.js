@@ -35,10 +35,7 @@ var apiPluginOptions = [{
     routes: {
         prefix: '/api'
     },
-    options: {
-        credentialPath: __dirname + '/data',
-        repositoryPath: __dirname + '/data'
-    }
+    options: require('./config')
 }];
 
 internals.compose({
@@ -83,7 +80,7 @@ internals.compose({
         }],
 
 
-        './mongodb': {},
+        './mongodb': apiPluginOptions,
         './common': {},
         './authentication': {},
 

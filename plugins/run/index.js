@@ -35,14 +35,16 @@ exports.register = function(server, options, next) {
                     verbosity: task.verbosity,
                     limit: task.hostLimit,
                     inventoryFile: Path.join(__dirname, '../../bin/inventory.js'),
-                    user: credential.sshUser,
-                    privateKey: credential.sshKeyPath,
+                    //user: credential.sshUser,
+                    //privateKey: credential.sshKeyPath,
                     extraVars: extraVars
                 };
 
                 var spawnOptions = {
                     env: {
-                        ANSIBLE_MASTER_INVENTORY_ID: task.inventoryId
+                        ANSIBLE_MASTER_INVENTORY_ID: task.inventoryId,
+                        ANSIBLE_MASTER_CREDENTIAL_ID: task.credentialId,
+                        ANSIBLE_HOST_KEY_CHECKING: false
                     }
                 };
 
@@ -53,6 +55,7 @@ exports.register = function(server, options, next) {
         createSpawnableForSync(repository, cb) {
             var args = {
                 file: Path.join(__dirname, 'playbooks/checkout.yml'),
+                inventoryFile: 'localhost,',
                 extraVars: {
                     REPO: repository.url,
                     TARGET: Path.join(options.repositoryPath, repository._id.toString())

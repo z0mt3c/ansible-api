@@ -3,7 +3,7 @@ var ObjectID = require('mongodb').ObjectID;
 var schema = require('./schema');
 var Boom = require('boom');
 var Path = require('path');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 
 exports.register = function(server, options, next) {
     server.views({

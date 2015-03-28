@@ -1,5 +1,6 @@
 var Path = require('path');
 var _ = require('lodash');
+var ansibleWeb = require('ansible-web');
 
 exports.register = function(server, options, next) {
     server.route({
@@ -9,7 +10,7 @@ exports.register = function(server, options, next) {
             auth: 'session',
             handler: {
                 directory: {
-                    path: Path.join(__dirname, '../../../web/build')
+                    path: ansibleWeb.path
                 }
             },
             plugins: {
@@ -27,7 +28,7 @@ exports.register = function(server, options, next) {
             config: {
                 handler: {
                     directory: {
-                        path: Path.join(__dirname, '../../../web/build', folder)
+                        path: Path.join(ansibleWeb.path, folder)
                     }
                 }
             }

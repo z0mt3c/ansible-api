@@ -4,13 +4,13 @@ var MongoClient = mongodb.MongoClient;
 var Hoek = require('hoek');
 
 var defaults = {
-    url: 'mongodb://localhost:27017/ansible'
 };
 
 exports.register = function(server, options, next) {
     options = Hoek.applyToDefaults(defaults, options || {});
+    Hoek.assert(options.mongodb, 'Mongodb config missing');
 
-    MongoClient.connect(options.url, function(error, db) {
+    MongoClient.connect(options.mongodb, function(error, db) {
         server.expose('db', db);
         server.db = db;
 

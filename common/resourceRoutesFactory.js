@@ -4,7 +4,7 @@ var Hoek = require('hoek');
 var _ = require('lodash');
 var async = require('async');
 var xResultCount = require('x-result-count');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 
 var defaults = {
     prefix: '/',

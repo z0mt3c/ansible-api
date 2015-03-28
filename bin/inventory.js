@@ -6,54 +6,50 @@ var _ = require('lodash');
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
+var async = require('async');
+var Path = require('path');
 
-var options = {url: 'mongodb://localhost:27017/ansible'};
+var CredentialManager = require('../plugins/credential/manager');
+var InventoryManager = require('../plugins/inventory/manager');
 
-var internals = {
-    assert: function(condition, message) {
-        if (!condition) {
-            console.error('ERROR: ' + message);
-            process.exit(1);
-        }
-    },
-    result: function(result) {
-        var formattedResult = JSON.stringify(result || {}, null, '  ');
-        console.log(formattedResult);
-    }
-};
+var config = require('../config');
 
 var inventoryId = process.env['ANSIBLE_MASTER_INVENTORY_ID'];
-internals.assert(inventoryId, 'No inventory id present');
+Hoek.assert(inventoryId, 'No inventory id present');
 
-MongoClient.connect(options.url, function(error, db) {
-    internals.assert(!error, 'DB Connection failed');
-    var inventories = db.collection('inventory');
-    var hosts = db.collection('host');
+var credentialID = process.env['ANSIBLE_MASTER_CREDENTIAL_ID'];
+Hoek.assert(credentialID, 'No credential id present');
 
-    inventories.findOne(new ObjectID(inventoryId), function(error, inventory) {
-        internals.assert(!error, 'Error while fetchting inventory');
-        internals.assert(inventory, 'Inventory not found');
+MongoClient.connect(config.mongodb, function (error, db) {
+  Hoek.assert(!error, 'DB Connection failed');
+  async.parallel([
+    function (next) {
+      var inventoryManager = new InventoryManager(db.collection('inventory'), db.collection('host'), config);
+      inventoryManager.prepare(new ObjectID(inventoryId), function (error, inventory, result) {
+        Hoek.assert(!error, 'Error while fetchting credential');
+        Hoek.assert(inventory || result, 'Inventory not found');
+        return next(null, result);
+      });
+    },
+    function (next) {
+      var credentialManager = new CredentialManager(db.collection('credential'), config);
+      credentialManager.prepare(new ObjectID(credentialID), function (error, credential, ansibleVars) {
+        Hoek.assert(!error, 'Error while fetchting credential');
+        Hoek.assert(credential, 'Credential not found');
+        Hoek.assert(credential.type === 'machine', 'Wrong credential type');
+        return next(null, ansibleVars);
+      });
+    }
+  ], function (error, results) {
+    var result = results[0];
+    var credentialVars = results[1];
 
-        var containingHosts = _.unique(_.reduce(inventory.groups, function(memo, group) {
-            if (_.isArray(group.hosts) && group.hosts.length > 0) {
-                memo = memo.concat(group.hosts);
-            }
-            return memo;
-        }, []));
+    var all = result.all = result.all || {vars: {}};
+    all.vars = _.extend(all.vars || {}, credentialVars);
 
-        hosts.find({name: {$in: containingHosts}}, {name: 1, vars: 1}).toArray(function(error, hostDocuments) {
-            internals.assert(!error, 'Error while fetchting hosts');
+    db.close();
 
-            var result = _.indexBy(inventory.groups, 'name');
-            var hostvars = _.reduce(hostDocuments, function(memo, entry) {
-                memo[entry.name] = entry.vars;
-                return memo;
-            }, {});
-
-            result = _.extend({_meta: {hostvars: hostvars}}, result);
-            internals.result(result);
-
-            db.close();
-        });
-    });
+    // finally: return the result
+    console.log(JSON.stringify(result || {}, null, '  '));
+  });
 });
